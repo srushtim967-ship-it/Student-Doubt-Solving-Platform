@@ -8,6 +8,23 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-slate-100 selection:bg-indigo-100 selection:text-indigo-900">
       
+      <nav className="text-black bg-white border-b">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <Link href="/" className="text-2xl font-bold">
+          DoubtSolver
+        </Link>
+
+        <div className="flex gap-6 text-md font-medium">
+          <Link href="/">Home</Link>
+          <Link href="/login">Login</Link>
+          <Link
+            href="/register"
+          >
+            Register
+          </Link>
+        </div>
+      </div>
+    </nav>
       {/* HERO SECTION */}
       <section className="bg-indigo-300 relative pt-24 pb-20 md:pt-32 md:pb-28 border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-6 text-center">

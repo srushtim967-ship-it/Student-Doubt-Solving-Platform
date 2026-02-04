@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Button from "@/components/ui/Button";
 import Link from 'next/link';
+import { MoreVertical, X } from "lucide-react";
 
 export default function AdminDashboard() {
   const [doubts, setDoubts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [answers, setAnswers] = useState({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -30,8 +32,6 @@ export default function AdminDashboard() {
     
     if (!error) {
       setDoubts(data || []);
-      
-      // Populate the input fields with existing answers for "answered" questions
       const initialAnswers = {};
       data.forEach(d => {
         if (d.status === "answered" && d.answer) {
@@ -47,7 +47,6 @@ export default function AdminDashboard() {
     const answerText = answers[id];
     if (!answerText || !answerText.trim()) return alert("Answer cannot be empty");
 
-    // Find the current record in our state to check its existing status
     const currentDoubt = doubts.find(d => d.id === id);
     const isAlreadyAnswered = currentDoubt?.status === "answered";
 
@@ -61,17 +60,11 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Update local state so the UI stays in sync
     setDoubts((prev) =>
       prev.map((d) => (d.id === id ? { ...d, answer: answerText, status: "answered" } : d))
     );
 
-    // Dynamic alert message based on previous state
-    if (isAlreadyAnswered) {
-      alert("Resolution re-submitted successfully!");
-    } else {
-      alert("Resolution submitted successfully!");
-    }
+    alert(isAlreadyAnswered ? "Resolution re-submitted!" : "Resolution submitted!");
   };
 
   const stats = {
@@ -81,33 +74,56 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 selection:bg-indigo-100">
-      <aside className="w-72 bg-indigo-900 text-white p-8 flex flex-col hidden lg:flex">
-        <div className="mb-10">
-          <h2 className="text-xl font-black tracking-tighter text-indigo-400 uppercase">Admin Dashboard</h2>
-          <p className="text-slate-500 text-xs font-bold mt-1 tracking-widest uppercase">Admin Management</p>
+    <div className="flex min-h-screen bg-slate-50 selection:bg-indigo-100 relative overflow-x-hidden">
+      
+      {/* 3-DOT TOGGLE BUTTON */}
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-6 left-6 z-50 p-3 bg-white border border-slate-200 rounded-full shadow-lg hover:bg-slate-50 text-slate-600 transition-all active:scale-95"
+      >
+        {isSidebarOpen ? <X size={24} /> : <MoreVertical size={24} />}
+      </button>
+
+      {/* SIDEBAR */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-72 bg-indigo-900 text-white flex flex-col p-8 shadow-2xl transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="mb-10 mt-12">
+          <h2 className="text-xl font-black tracking-tighter text-indigo-400 uppercase">Admin</h2>
+          <p className="text-slate-500 text-xs font-bold mt-1 tracking-widest uppercase">Dashboard</p>
         </div>
         
         <nav className="flex flex-col gap-2 flex-1">
-          <div className="bg-indigo-600/10 text-indigo-400 px-4 py-3 rounded-xl font-bold flex items-center gap-3 border border-indigo-600/20">
-            <span>📊</span>Dashboard
+          <Link href="/" className="hover:bg-indigo-800 text-white px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-3">
+            <span>🏠</span> Home
+          </Link>
+          <div className="bg-indigo-600/20 text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 border border-indigo-500/30">
+            <span>📊</span> Dashboard
           </div>
           <Link href="/admin/settings" className="hover:bg-indigo-800 text-slate-400 px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-3">
-             <span>⚙️</span> Settings
+            <span>⚙️</span> Settings
           </Link>
         </nav>
 
         <button 
           onClick={() => { localStorage.removeItem("user"); window.location.href="/login"; }}
-          className="bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-xl font-bold transition-all text-center"
+          className="bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-xl font-bold transition-all text-center mt-auto"
         >
           Sign Out
         </button>
       </aside>
 
-      <main className="flex-1 p-6 md:p-12 overflow-y-auto">
+      {/* MAIN CONTENT */}
+      <main className={`
+        flex-1 p-6 md:p-12 transition-all duration-300
+        ${isSidebarOpen ? "md:ml-72 opacity-50 md:opacity-100" : "ml-0"}
+        pl-20 md:pl-24
+      `}>
         <header className="mb-10">
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Doubt <span className="text-indigo-700">Moderation</span></h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+            Doubt <span className="text-indigo-700">Moderation</span>
+          </h1>
           <p className="text-slate-500 font-medium mt-1">Manage and update student query resolutions.</p>
         </header>
 
@@ -129,8 +145,8 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden">
-          <table className="w-full text-left">
+        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden overflow-x-auto">
+          <table className="w-full text-left min-w-[800px]">
             <thead className="bg-slate-100 border-b border-slate-100">
               <tr>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-900">Student Question</th>

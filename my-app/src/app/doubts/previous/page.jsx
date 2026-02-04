@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import Sidebar from "@/components/Sidebar";
+import { MoreVertical, X } from "lucide-react";
+import Link from "next/link";
 
 export default function PreviousDoubtsPage() {
   const [user, setUser] = useState(null);
   const [doubts, setDoubts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const fetchDoubts = async (email) => {
     setLoading(true);
@@ -37,10 +39,44 @@ export default function PreviousDoubtsPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 selection:bg-indigo-100">
-      <Sidebar />
+    <div className="flex min-h-screen bg-slate-50 selection:bg-indigo-100 relative overflow-x-hidden">
+      
+      {/* 3-DOT FLOATING BUTTON */}
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-6 left-6 z-50 p-3 bg-white border border-slate-200 rounded-full shadow-lg hover:bg-slate-50 text-slate-600 transition-all active:scale-95"
+      >
+        {isSidebarOpen ? <X size={24} /> : <MoreVertical size={24} />}
+      </button>
 
-      <main className="flex-1 p-6 md:p-12 ">
+      {/* SIDEBAR */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-indigo-800 text-white flex flex-col p-6 shadow-2xl transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="mb-10 mt-12">
+          <h2 className="text-xl font-black tracking-tighter text-indigo-400 uppercase">Student</h2>
+          <p className="text-slate-800 text-md font-bold mt-1 tracking-widest uppercase">Dashboard</p>
+        </div>
+        <nav className="flex flex-col gap-3">
+          <Link href="/" className="hover:bg-indigo-700 text-white px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-3">
+            <span>🏠</span> Home
+          </Link>
+          <Link href="/dashboard" className="hover:bg-indigo-700 text-slate-400 px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-3">
+            <span>📊</span> Dashboard
+          </Link>
+          <Link href="/doubts" className="bg-indigo-600 text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 border border-indigo-400/20 shadow-inner">
+            <span>❓</span> Doubts
+          </Link>
+        </nav>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className={`
+        flex-1 p-6 md:p-12 transition-all duration-300
+        ${isSidebarOpen ? "md:ml-64 opacity-50 md:opacity-100" : "ml-0"}
+        pl-20 md:pl-24
+      `}>
         {/* Header Section */}
         <div className="max-w-6xl mx-auto mb-10">
           <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">
@@ -97,10 +133,10 @@ export default function PreviousDoubtsPage() {
                   </div>
 
                   {/* Answer Section */}
-                  <div className="px-8 py-6 bg-gray-100 flex-grow">
+                  <div className="px-8 py-6 bg-slate-50 flex-grow">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Solution</h3>
                     {doubt.answer ? (
-                      <p className="text-slate-950 leading-relaxed font-lg text-md">
+                      <p className="text-slate-950 leading-relaxed font-medium text-md">
                         {doubt.answer}
                       </p>
                     ) : (
@@ -116,6 +152,14 @@ export default function PreviousDoubtsPage() {
           )}
         </div>
       </main>
+
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 }

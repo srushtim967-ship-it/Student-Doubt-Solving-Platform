@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { MoreVertical, X } from "lucide-react";
 
 export default function AdminSettings() {
   const [admin, setAdmin] = useState({ name: "", email: "" });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // New System Settings State
   const [systemConfig, setSystemConfig] = useState({
     officeHours: true,
     autoArchive: false,
@@ -30,35 +31,52 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 selection:bg-indigo-100">
+    <div className="flex min-h-screen bg-slate-50 selection:bg-indigo-100 relative overflow-x-hidden">
       
-      {/* Admin Sidebar */}
-      <aside className="w-72 bg-indigo-900 text-white p-8 flex flex-col hidden lg:flex">
-        <div className="mb-10">
-          <h2 className="text-xl font-black tracking-tighter text-indigo-400 uppercase">Admin Dashboard</h2>
-          <p className="text-slate-500 text-xs font-bold mt-1 tracking-widest uppercase">Admin Management</p>
+      {/* 3-DOT TOGGLE BUTTON */}
+      <button 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="fixed top-6 left-6 z-50 p-3 bg-white border border-slate-200 rounded-full shadow-lg hover:bg-slate-50 text-slate-600 transition-all active:scale-95"
+      >
+        {isSidebarOpen ? <X size={24} /> : <MoreVertical size={24} />}
+      </button>
+
+      {/* SIDEBAR */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-40 w-72 bg-indigo-900 text-white flex flex-col p-8 shadow-2xl transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
+        <div className="mb-10 mt-12">
+          <h2 className="text-xl font-black tracking-tighter text-indigo-400 uppercase">Admin</h2>
+          <p className="text-slate-500 text-xs font-bold mt-1 tracking-widest uppercase">Dashboard</p>
         </div>
         
         <nav className="flex flex-col gap-2 flex-1">
-          <Link href="/admin" className="hover:bg-indigo-800 text-slate-400 px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-3">
-             Dashboard
+          <Link href="/" className="hover:bg-indigo-800 text-white px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-3">
+            <span>🏠</span> Home
           </Link>
-        
-          
-          <div className="bg-indigo-600/10 text-indigo-400 px-4 py-3 rounded-xl font-bold flex items-center gap-3 border border-indigo-600/20">
+          <Link href="/admin" className="hover:bg-indigo-700 text-slate-400 px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-3">
+            <span>📊</span> Dashboard
+          </Link>
+          <div className="bg-indigo-600/20 text-white px-4 py-3 rounded-xl font-bold flex items-center gap-3 border border-indigo-500/30">
             <span>⚙️</span> Settings
           </div>
         </nav>
 
         <button 
           onClick={() => { localStorage.removeItem("user"); window.location.href="/login"; }}
-          className="bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-xl font-bold transition-all text-center"
+          className="bg-red-700 hover:bg-red-800 text-white px-4 py-3 rounded-xl font-bold transition-all text-center mt-auto"
         >
           Sign Out
         </button>
       </aside>
 
-      <main className="flex-1 p-6 md:p-12 lg:ml-0">
+      {/* MAIN CONTENT */}
+      <main className={`
+        flex-1 p-6 md:p-12 transition-all duration-300
+        ${isSidebarOpen ? "md:ml-72 opacity-50 md:opacity-100" : "ml-0"}
+        pl-20 md:pl-24
+      `}>
         <div className="max-w-5xl mx-auto">
           <header className="mb-10">
             <h1 className="text-4xl font-black text-slate-900 tracking-tight">System <span className="text-indigo-700">Configuration</span></h1>
@@ -66,10 +84,9 @@ export default function AdminSettings() {
           </header>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
             <div className="lg:col-span-2 space-y-8">
               
-              {/* 1. Profile Management */}
+              {/* Profile Management */}
               <section className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 p-8">
                 <h3 className="text-lg font-black text-slate-800 mb-6 uppercase tracking-tighter">Admin Profile</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -84,7 +101,7 @@ export default function AdminSettings() {
                 </div>
               </section>
 
-              {/* 2. Platform Logic */}
+              {/* System Rules */}
               <section className="bg-white rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50 p-8">
                 <h3 className="text-lg font-black text-slate-800 mb-6 uppercase tracking-tighter">System Rules</h3>
                 <div className="space-y-4">
@@ -105,7 +122,6 @@ export default function AdminSettings() {
                   </div>
                 </div>
               </section>
-
             </div>
 
             {/* Right Column: Platform Health */}
@@ -119,9 +135,6 @@ export default function AdminSettings() {
                    onChange={(e) => setSystemConfig({...systemConfig, minCharCount: e.target.value})}
                    className="w-full bg-indigo-500 text-white border-none rounded-xl px-4 py-2 focus:ring-2 focus:ring-white/20 outline-none font-bold"
                 />
-                <p className="text-xs text-indigo-100 mt-4 leading-relaxed font-medium">
-                  Prevents students from submitting short, low-quality questions like "help" or "??".
-                </p>
               </div>
 
               <div className="bg-white border border-slate-200 rounded-[2rem] p-8 text-center">
@@ -132,11 +145,10 @@ export default function AdminSettings() {
                  </div>
               </div>
             </div>
-
           </div>
 
           <div className="mt-8 flex justify-end">
-            <Button className="bg-indigo-700 text-white px-12 py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100 active:scale-95 transition-all">
+            <Button className="bg-indigo-700 text-white px-12 py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-100">
               Save All Settings
             </Button>
           </div>
@@ -146,7 +158,6 @@ export default function AdminSettings() {
   );
 }
 
-// Simple Toggle Component
 function Toggle({ active, onClick }) {
   return (
     <button 
